@@ -1,0 +1,53 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Battleship
+{
+    class Player
+    {
+        public string Name { get; set; }
+        public List<List<string>> Board { get; set; }
+
+        public string[] BoardRow = new string[] { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
+
+        public Player()
+        {
+          
+            Board = BuildBoard();
+            //ComputerBoard = BuildBoard();
+            Ships = new List<Ship>()
+            {
+                new Ship() {Length = 5, Name = "Carrier"},
+                new Ship() {Length = 4, Name = "Battleship"},
+                new Ship() {Length = 3, Name = "Cruiser"},
+                new Ship() {Length = 3, Name = "Submarine"},
+                new Ship() {Length = 2, Name = "Destroyer"}
+             };
+        }
+
+        private List<List<string>> BuildBoard()
+        {
+            return new List<List<string>>()
+            {
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+                new List<string>() { " ", " ", " ", " ", " ", " ", " ", " ", " ", " " },
+
+            };
+
+        }
+
+        public List<Ship> Ships { get; set; }
+
+    }
+}
+

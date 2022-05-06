@@ -1,0 +1,308 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Battleship
+{
+    public class Game
+    {
+        Player User = new Player();
+        Player Computer = new Player();
+        Player PcHidden = new Player();
+
+        public bool StartGame()
+        {
+
+            Dialog.WelcomeDisplay();
+
+            Computer.Name = "Computer";
+            Console.WriteLine("Enter your Name:");
+            User.Name = Console.ReadLine();
+
+            var GameStarts = Dialog.MenuDisplay();
+
+            if (!GameStarts)
+            {
+                return false;
+            }
+
+            BuildBoards();
+            StartBattle();
+
+            return true;
+        }
+
+        private void BuildBoards()
+        {
+            BuildShips(User);
+            BuildShips(Computer);
+            Console.WriteLine($"Board of the User");
+            Dialog.PrintBoard(User.Board);
+            Console.WriteLine($"Board of the Computer");
+            Dialog.PrintBoard(PcHidden.Board);
+        }
+
+
+        private void BuildShips(Player P1)
+        {
+            var random = new Random();
+            foreach (var ship in P1.Ships)
+            {
+                var Valid = false;
+
+                Coordinate RandomPositions = new Coordinate();
+
+                do
+                {
+                    RandomPositions.Horizontal = random.Next(0, 2) == 1 ? true : false;
+                    RandomPositions.Row = random.Next(0, 10);
+                    RandomPositions.Col = random.Next(0, 10);
+                    Valid = ValidatePositions(P1.Board, ship.Length, RandomPositions);
+                }
+                while (!Valid);
+
+                if (RandomPositions.Horizontal)
+                {
+                    for (int i = 0; i < ship.Length; i++)
+                    {
+                        P1.Board[RandomPositions.Col][RandomPositions.Row + i] = "X";
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < ship.Length; i++)
+                    {
+                        P1.Board[RandomPositions.Col + i][RandomPositions.Row] = "X";
+                    }
+                }
+            }
+        }
+
+        public static bool ValidatePositions(List<List<string>> Board, int Length, Coordinate Coord)
+        {
+            if (Coord.Horizontal)
+            {
+                if (Coord.Row + Length < 11)
+                {
+                    for (int j = 0; j < Length; j++)
+                    {
+                        int X = Coord.Col;
+                        int Y = Coord.Row + j;
+
+                        bool Sucess = Position(Board, X, Y);
+
+                        if (!Sucess) { return false; }
+
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (Coord.Col + Length < 11)
+                {
+                    for (int j = 0; j < Length; j++)
+                    {
+                        int X = Coord.Col + j;
+                        int Y = Coord.Row;
+
+                        bool Sucess = Position(Board, X, Y);
+
+                        if (!Sucess) { return false; }
+
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public static bool Position(List<List<string>> Board, int X, int Y)
+        {
+            for (int A = -1; A < 2; A++)
+            {
+                for (int B = -1; B < 2; B++)
+                {
+                    if (((X + A) == -1) || ((Y + B) == -1) || ((X + A) == 10) || ((Y + B) == 10)) { }
+                    else
+                    {
+                        if (Board[X + A][Y + B] == "X") { return false; }
+                    }
+                }
+            }
+            return true;
+        }
+
+        private void StartBattle()
+        {
+            Coordinate FiringCoordinates = new Coordinate();
+            bool GameOver = false;
+
+            do
+            {
+                FiringCoordinates = GetCoordinatesFromUser(Computer);
+                FireOnComputerBoard(FiringCoordinates);
+                GameOver = CheckForWinner(User);
+
+                if (GameOver) { return; }
+
+                FiringCoordinates = GetCoordinatesFromComputer();
+                FireOnUserBoard(FiringCoordinates);
+                GameOver = CheckForWinner(Computer);
+
+            }
+            while (!GameOver);
+        }
+
+        private static bool CheckForWinner(Player P1)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (P1.Board[i][j] == "X") { return false; }
+                }
+            }
+            Console.WriteLine($"{P1.Name} Won the Game");
+            return true;
+        }
+
+        private void FireOnComputerBoard(Coordinate C1)
+        {
+            Console.Clear();
+            if (Computer.Board[C1.Col][C1.Row] == "X")
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"Good Shot by {User.Name} ");
+                Computer.Board[C1.Col][C1.Row] = "*";
+                PcHidden.Board[C1.Col][C1.Row] = "*";
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine($"{User.Name}'s Missile Misfired");
+                Computer.Board[C1.Col][C1.Row] = "O";
+                PcHidden.Board[C1.Col][C1.Row] = "O";
+            }
+
+            Console.ResetColor();
+            Dialog.PrintBoard(PcHidden.Board);
+        }
+
+        private void FireOnUserBoard(Coordinate C1)
+        {
+            if (User.Board[C1.Col][C1.Row] == "X")
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Good Shot by Computer");
+                User.Board[C1.Col][C1.Row] = "*";
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine("Computer's Missile Misfired");
+                
+                User.Board[C1.Col][C1.Row] = "O";
+            }
+
+            Dialog.PrintBoard(User.Board);
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine(" * - Missile Hit | O - Missile Missed ");
+            Console.ResetColor();
+        }
+
+        private static Coordinate GetCoordinatesFromUser(Player C1)
+        {
+            var ValidationSucessfull = false;
+
+            Coordinate UserFiringPosition = new Coordinate();
+
+            do
+            {
+                Console.WriteLine("Enter firing position (E.g A4).");
+                UserFiringPosition.userinput = Console.ReadLine();
+
+                ValidationSucessfull = ValidateUserCoordinates(UserFiringPosition);
+
+                if ((C1.Board[UserFiringPosition.Col][UserFiringPosition.Row] == "*") || (C1.Board[UserFiringPosition.Col][UserFiringPosition.Row] == "O"))
+                { ValidationSucessfull = false; }
+
+                if (!ValidationSucessfull)
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.WriteLine("Invalid Coordinates");
+                    Console.ResetColor();
+                }
+
+            }
+            while (!ValidationSucessfull);
+
+            //Console.WriteLine($"Valid Coordiates");
+            //Console.WriteLine($"Row Position in the list is {UserFiringPosition.Row}");
+            //Console.WriteLine($"Col Position in the list is {UserFiringPosition.Col}");
+            return UserFiringPosition;
+
+        }
+
+        private Coordinate GetCoordinatesFromComputer()
+        {
+            Coordinate ComputerFiringPosition = new Coordinate();
+            var random = new Random();
+
+            var ValidCoordinates = false;
+
+            do
+            {
+                ComputerFiringPosition.Row = random.Next(0, 10);
+                ComputerFiringPosition.Col = random.Next(0, 10);
+
+                if ((User.Board[ComputerFiringPosition.Col][ComputerFiringPosition.Row] != "*") && (User.Board[ComputerFiringPosition.Col][ComputerFiringPosition.Row] != "O"))
+                { ValidCoordinates = true; }
+
+            }
+            while (!ValidCoordinates);
+
+            //Console.WriteLine($"Coordiates from Computer");
+            //Console.WriteLine($"Row Position in the list is {ComputerFiringPosition.Row}");
+            //Console.WriteLine($"Col Position in the list is {ComputerFiringPosition.Col}");
+
+            return ComputerFiringPosition;
+
+        }
+
+        private static bool ValidateUserCoordinates(Coordinate C1)
+        {
+            if (C1.userinput.Length != 2) { return false; }
+            string X = C1.userinput.Substring(0, 1);
+            string Y = C1.userinput.Substring(1, 1);
+
+            string[] RowHeader = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
+            List<string> BoardRow = new List<string>(RowHeader);
+
+            string[] ColHeader = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
+            List<string> BoardCol = new List<string>(ColHeader);
+
+            bool RowPass = BoardRow.Any(X.Contains);
+            bool ColPass = BoardCol.Any(Y.Contains);
+
+            if (RowPass && ColPass)
+            {
+                C1.Row = BoardRow.FindIndex(a => a.Contains(X));
+                C1.Col = (Int32.Parse(Y) - 1);
+                return true;
+            }
+            else { return false; }
+        }
+
+    }
+}

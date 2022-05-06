@@ -1,0 +1,62 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Battleship
+{
+    public class Dialog
+    {
+        public static void WelcomeDisplay()
+        {
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.WriteLine("BATTLESHIP");
+            Console.ResetColor();
+        }
+
+        public static bool MenuDisplay()
+        {
+            while (true)
+            {
+                Console.WriteLine("1. New game");
+                Console.WriteLine("2. Exit");
+
+                var answerFromPlayer = Console.ReadLine();
+
+                if (answerFromPlayer == "1")
+                {
+                    return true;
+                }
+                else if (answerFromPlayer == "2")
+                {
+                    Console.WriteLine("Exiting the game");
+                    return false;
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("Command does not exist");
+                }
+            }
+        }
+        public static void PrintBoard(List<List<string>> Board)
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            string board = string.Empty;
+            board = "|  ||A||B||C||D||E||F||G||H||I||J|\n";
+            
+            for (int i = 0; i < Board.Count; i++)
+            {
+                board += i != 9 ? $"[ {i + 1}]" : $"[{i + 1}]";
+                foreach (string X in Board[i])
+                {
+                    board += $"|{X}|";
+                }
+
+                board += "\n";
+            }
+
+            Console.WriteLine(board);
+            Console.ResetColor();
+        }
+    }
+}
